@@ -43,8 +43,9 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
-            echo "Current directory: $(pwd)"
             cd /home/ec2-user/folink
+            echo "Current directory: $(pwd)"
+            echo "Disk space: $(df -h /)"
             docker-compose down
             docker pull silofn/folink:latest
             docker-compose up -d
