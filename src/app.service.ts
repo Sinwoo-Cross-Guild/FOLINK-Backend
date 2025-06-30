@@ -8,7 +8,7 @@ export class AppService {
   private test: Test[] = []
 
   getHello(): string {
-    return 'Test Message!'
+    return 'Good Luck!'
   }
 
   getDate(): Test[] {
