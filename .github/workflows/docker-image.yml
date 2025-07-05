@@ -49,6 +49,6 @@ jobs:
             docker-compose down
             docker pull silofn/folink:latest
             docker image prune -f || true
-          docker system prune -a -f --volumes
+            docker system prune -a -f --volumes
             docker-compose up -d
           EOF
