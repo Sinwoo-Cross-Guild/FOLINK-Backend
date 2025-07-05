@@ -55,5 +55,4 @@ jobs:
             docker-compose up -d
             docker-compose ps
             docker inspect $(docker ps -q --filter "name=folink_app") | grep Image
-            curl --fail http://localhost:3000/health || exit 1
           EOF

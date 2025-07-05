@@ -10,6 +10,7 @@ import { UserModule } from './user/user.module'
 import { AuthModule } from './auth/auth.module'
 import { CoreModule } from './core/core.module'
 import { FeedbackModule } from './feedback/feedback.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { FeedbackModule } from './feedback/feedback.module';
     UserModule,
     AuthModule,
     CoreModule,
-    FeedbackModule
+    FeedbackModule,
+    HealthModule
   ],
   controllers: [AppController],
   providers: [
