@@ -56,9 +56,6 @@ services:
       - SWAGGER_USER=${SWAGGER_USER:-user}
       - SWAGGER_PW=${SWAGGER_PW:-root}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-AIzaSyCw9l1Bf77DMOMMe5YkUmhKzI9T0_4Rwds}
-    volumes:
-      - .:/app
-      - /app/node_modules
 
 volumes:
   pgdata:
