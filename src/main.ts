@@ -32,7 +32,7 @@ async function bootstrap() {
     })
   )
   const config = new DocumentBuilder()
-    .setTitle('대용쌤과 함께하는 싱글벙글 마지막 캡스톤!!')
+    .setTitle('대용쌤과 함께하는 싱글벙글 마지막 캡스톤!!.')
     .setDescription('Polink')
     .setVersion('2.0')
     .addBearerAuth()
