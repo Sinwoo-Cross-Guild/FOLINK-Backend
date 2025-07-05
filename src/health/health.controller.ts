@@ -7,6 +7,6 @@ export class HealthController {
 
   @Get()
   check(): { status: string } {
-    return { status: 'ok' }
+    return { status: 'ok!' }
   }
 }
