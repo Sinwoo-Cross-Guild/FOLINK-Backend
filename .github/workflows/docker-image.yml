@@ -21,7 +21,7 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build NestJS application
-        run: npm run build
+        run: npm run build || { cat dist/main.js || echo "Build failed, no dist/main.js"; exit 1; }
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -53,6 +53,7 @@ jobs:
             docker system prune -a -f --volumes
             docker-compose pull
             docker-compose up -d
+            sleep 30
             docker-compose ps
             docker inspect $(docker ps -q --filter "name=folink_app") | grep Image
           EOF
