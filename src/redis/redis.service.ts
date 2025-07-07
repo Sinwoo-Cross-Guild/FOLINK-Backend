@@ -9,7 +9,8 @@ export class RedisService {
   constructor(private configService: ConfigService) {
     this.client = new Redis({
       host: this.configService.get<string>('REDIS_HOST', 'folink_redis'),
-      port: this.configService.get<number>('REDIS_PORT', 6379)
+      port: this.configService.get<number>('REDIS_PORT', 6379),
+      password: this.configService.get<string>('REDIS_PASSWORD', 'root')
     })
   }
 
