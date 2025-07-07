@@ -7,15 +7,15 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-srfn}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
       POSTGRES_DB: ${DB_SCHEMA:-link}
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    #healthcheck:
+    #  test: ["CMD-SHELL", "pg_isready -U srfn"]
+    #  interval: 10s
+    #  timeout: 5s
+    #  retries: 5
 
   folink_redis:
     image: redis:latest
@@ -42,7 +42,7 @@ services:
       - "3000:3000"
     depends_on:
       folink_db:
-        condition: service_healthy
+        condition: service_started
       folink_redis:
         condition: service_started
     environment:
@@ -55,6 +55,11 @@ services:
       - SWAGGER_USER=${SWAGGER_USER:-user}
       - SWAGGER_PW=${SWAGGER_PW:-root}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-AIzaSyCw9l1Bf77DMOMMe5YkUmhKzI9T0_4Rwds}
+
+  debug:
+    container_name: debug
+    image: alpine:latest
+    command: sh -c "while true; do sleep 999; done;"
 
 volumes:
   pgdata:

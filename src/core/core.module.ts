@@ -11,11 +11,11 @@ import { join } from 'path'
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get('DB_HOST'),
-        port: config.get('DB_PORT'),
-        username: config.get('DB_USERNAME'),
-        password: config.get('DB_PASSWORD'),
-        database: config.get('DB_SCHEMA'),
+        host: config.get('DB_HOST', 'folink_db'),
+        port: config.get('DB_PORT', 5432),
+        username: config.get('DB_USERNAME', 'srfn'),
+        password: config.get('DB_PASSWORD', 'root'),
+        database: config.get('DB_SCHEMA', 'link'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: config.get<boolean>('TYPEORM_SYNCHRONIZE'),
         logging: true, // 로깅 활성화
