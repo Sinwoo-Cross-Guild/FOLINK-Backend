@@ -30,7 +30,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t silofn/folink:latest .
+        run: docker build --no-cache -t silofn/folink:latest .
 
       - name: Push Docker image
         run: docker push silofn/folink:latest
