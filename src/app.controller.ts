@@ -2,7 +2,6 @@
 import { Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Post, ValidationPipe } from '@nestjs/common'
 import { AppService } from './app.service'
 import { Test } from './app.test.entity'
-import { TestDto } from './app.test.dto'
 
 @Controller()
 export class AppController {

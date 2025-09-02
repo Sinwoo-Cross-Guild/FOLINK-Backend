@@ -30,7 +30,7 @@ export class QuestionService {
     private readonly conversationRepository: Repository<Conversation>,
     @InjectRepository(Message) private readonly messageRepository: Repository<Message>,
     private readonly geminiApiService: QuestionGeminiService
-  ) {}
+  ) {} 
 
   // 텍스트 정제 유틸리티 함수
   private sanitizeText(text: string): string {
