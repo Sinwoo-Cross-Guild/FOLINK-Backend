@@ -1,6 +1,7 @@
 import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { DifficultyType } from 'src/answer/enum/difficulty.type'
 import { GeminiApiError } from 'src/common/errors'
 import { CacheKeyGenerator } from 'src/common/utils/cache-key-generator'
 import { RedisService } from 'src/redis/redis.service'
@@ -30,9 +31,9 @@ export class QuestionGeminiService {
   /**
    * 질문 생성 프롬프트 작성
    */
-  private buildPrompt(text: string): string {
+  private buildPrompt(text: string, difficultyType: DifficultyType = DifficultyType.NORMAL): string {
     return `
-      당신은 포트폴리오 분석 전문가인 AI입니다. 사용자가 제공한 포트폴리오(텍스트, PDF)를 분석하여 두 가지 유형의 면접 질문을 생성하고, 결과를 JSON 형식으로 출력하는 것이 목표입니다: (1) 각 프로젝트의 기술 스택에 대한 전형적인 기술 질문, (2) 프로젝트별 기술 스택 사용 맥락에 초점을 맞춘 질문. 평가 목적은 **기술 선택**, **구현 방식**, **문제 해결**, **성과 평가** 4가지로 제한됩니다. 다음 지침을 엄격히 따르세요:
+      당신은 포트폴리오 분석 전문가인 AI입니다. 사용자가 제공한 포트폴리오(텍스트, PDF)를 분석하여 두 가지 유형의 면접 질문을 생성하고, 결과를 JSON 형식으로 출력하는 것이 목표입니다: (1) 각 프로젝트의 기술 스택에 대한 전형적인 기술 질문, (2) 프로젝트별 기술 스택 사용 맥락에 초점을 맞춘 질문. 평가 목적은 **기술 선택**, **구현 방식**, **문제 해결**, **성과 평가** 4가지로 제한됩니다. 난이도: ${difficultyType} (easy: 초보자 수준, normal: 주니어 수준, hard: 시니어 수준) 에 맞춰 질문 수준을 조정하세요. 다음 지침을 엄격히 따르세요:
 
       1. **입력 처리**:  
          - 사용자가 제공한 포트폴리오에서 프로젝트명, 사용된 기술 스택(예: React, TensorFlow, AWS 등), 프로젝트 목표, 주요 작업, 성과 등을 식별합니다.  
@@ -109,7 +110,7 @@ export class QuestionGeminiService {
   /**
    * 텍스트를 기반으로 프로젝트 및 기술 질문 생성
    */
-  public async generateQuestions(text: string): Promise<{
+  public async generateQuestions(text: string, difficultyType: DifficultyType = DifficultyType.NORMAL): Promise<{
     tech_stack: { stack: string; questions: { id: number; text: string; purpose: string }[] }[]
     projects: {
       project_name: string
@@ -134,7 +135,7 @@ export class QuestionGeminiService {
       return cachedData
     }
 
-    const prompt = this.buildPrompt(text)
+    const prompt = this.buildPrompt(text, difficultyType)
     const rawText = await this.getGeminiResponse(prompt)
     const result = this.parseGeminiResponse<{
       tech_stack: {

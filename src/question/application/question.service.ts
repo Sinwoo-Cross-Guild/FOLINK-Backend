@@ -18,6 +18,7 @@ import { QuestionType } from '../enum/question.type'
 import { MessageType } from 'src/answer/enum/message.type'
 import { ApiResponseUtil } from 'src/common/utils/api-response.util'
 import * as pdfParse from 'pdf-parse'
+import { DifficultyType } from 'src/answer/enum/difficulty.type'
 
 @Injectable()
 export class QuestionService {
@@ -58,8 +59,10 @@ export class QuestionService {
       throw ApiResponseUtil.error('유효한 텍스트가 없습니다', HttpStatus.BAD_REQUEST)
     }
 
-    const { tech_stack, projects } =
-      await this.geminiApiService.generateQuestions(sanitizedUserResponse)
+    const { tech_stack, projects } = await this.geminiApiService.generateQuestions(
+      sanitizedUserResponse,
+      dto.difficulty
+    )
     const questionSet = await this.questionSetRepository.save(
       QuestionSet.createQuestionSet(sanitizedUserResponse)
     )
@@ -79,7 +82,8 @@ export class QuestionService {
           const conversation = await this.createConversation(
             null,
             sanitizedText,
-            QuestionType.PROJECT
+            QuestionType.PROJECT,
+            dto.difficulty
           )
           const question = Question.createQuestion(
             this.sanitizeText(project.project_name),
@@ -113,7 +117,8 @@ export class QuestionService {
           const conversation = await this.createConversation(
             null,
             sanitizedText,
-            QuestionType.TECH_STACK
+            QuestionType.TECH_STACK,
+            dto.difficulty
           )
           const questionStack = QuestionStack.createQuestionStack(
             this.sanitizeText(tech.stack),
@@ -141,10 +146,11 @@ export class QuestionService {
   private async createConversation(
     questionId: number | null,
     questionText: string,
-    type: QuestionType
+    type: QuestionType,
+    difficulty: DifficultyType
   ): Promise<Conversation> {
     const tempId = questionId?.toString() ?? `temp-${type}-${Date.now()}`
-    const conversation = Conversation.createConversation(tempId, questionText, type)
+    const conversation = Conversation.createConversation(tempId, questionText, type, difficulty)
     const savedConversation = await this.conversationRepository.save(conversation)
 
     const initialMessage = Message.createMessage(questionText, MessageType.AI)

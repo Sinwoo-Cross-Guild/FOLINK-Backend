@@ -58,6 +58,7 @@ export class AnswerService {
       const geminiResponse = await this.answerGeminiService.generateNextStep(
         conversation.originalQuestionId,
         lastQuestion,
+        conversation.difficulty,
         userResponse,
         { cache: false }
       )
@@ -130,7 +131,8 @@ export class AnswerService {
         }
         return messageResponse
       }),
-      status: isEnded ? StatusType.END : StatusType.ON_GOING
+      status: isEnded ? StatusType.END : StatusType.ON_GOING,
+      difficulty: conversation.difficulty
     })
 
     return response

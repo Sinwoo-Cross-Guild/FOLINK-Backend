@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import { GeminiApiError } from 'src/common/errors'
 import { CacheKeyGenerator } from 'src/common/utils/cache-key-generator'
 import { RedisService } from 'src/redis/redis.service'
+import { DifficultyType } from '../enum/difficulty.type'
 
 @Injectable()
 export class AnswerGeminiService {
@@ -37,10 +38,11 @@ export class AnswerGeminiService {
   private buildPrompt(
     originalQuestionId: string,
     originalQuestionText: string, // 이 파라미터는 이제 lastAiQuestionText로 사용됩니다.
-    userResponse: string
+    userResponse: string,
+    difficulty: DifficultyType = DifficultyType.NORMAL
   ): string {
     return `
-     당신은 대화형 면접 전문가인 AI입니다. 사용자가 제공한 면접 질문에 대한 답변을 분석하여, 단일 후속 질문을 동적으로 생성하고, 평가자의 피드백을 JSON 형식으로 출력하세요. 후속 질문은 자연스러운 대화 톤으로, 답변에 즉각 반응하여 기술적 깊이를 탐구하거나 명확성을 요청해야 합니다. 평가 목적은 '기술 선택', '구현 방식', '문제 해결', '성과 평가' 중 하나로 제한됩니다.
+     당신은 대화형 면접 전문가인 AI입니다. 사용자가 제공한 면접 질문에 대한 답변을 분석하여, 단일 후속 질문을 동적으로 생성하고, 평가자의 피드백을 JSON 형식으로 출력하세요. 후속 질문은 자연스러운 대화 톤으로, 답변에 즉각 반응하여 기술적 깊이를 탐구하거나 명확성을 요청해야 합니다. 평가 목적은 '기술 선택', '구현 방식', '문제 해결', '성과 평가' 중 하나로 제한됩니다. 난이도: ${difficulty} (easy: 초보자 수준, normal: 주니어 수준, hard: 시니어 수준) 에 맞춰 질문 수준을 조정하세요.
 
      1. **입력 처리**:
         - 입력: 원본 질문 ID, 이전 AI 질문 텍스트, 사용자 답변.
@@ -85,6 +87,7 @@ export class AnswerGeminiService {
   public async generateNextStep(
     originalQuestionId: string,
     lastAiQuestionText: string, // originalQuestionText 파라미터 이름을 명확하게 변경
+    difficulty: DifficultyType = DifficultyType.NORMAL,
     userResponse: string,
     options: { cache?: boolean } = { cache: true }
   ): Promise<{
@@ -116,7 +119,12 @@ export class AnswerGeminiService {
       console.log(`CacheKey (SKIPPED): ${cacheKey}`)
     }
 
-    const prompt = this.buildPrompt(originalQuestionId, lastAiQuestionText, userResponse)
+    const prompt = this.buildPrompt(
+      originalQuestionId,
+      lastAiQuestionText,
+      userResponse,
+      difficulty
+    )
     const rawText = await this.getGeminiResponse(prompt)
     const result = this.parseGeminiResponse<{
       next_step: {
