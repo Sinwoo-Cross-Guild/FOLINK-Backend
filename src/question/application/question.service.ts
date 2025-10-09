@@ -64,7 +64,7 @@ export class QuestionService {
       dto.difficulty
     )
     const questionSet = await this.questionSetRepository.save(
-      QuestionSet.createQuestionSet(sanitizedUserResponse)
+      QuestionSet.createQuestionSet(sanitizedUserResponse, dto.difficulty)
     )
 
     const savedQuestions = await Promise.all(
@@ -194,6 +194,7 @@ export class QuestionService {
       TechStackQuestionDto,
       questionSet.questionStacks ?? []
     )
+    questionSetDto.difficulty = questionSet.difficulty
     return questionSetDto
   }
 }

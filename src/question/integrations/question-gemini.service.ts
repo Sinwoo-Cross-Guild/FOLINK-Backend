@@ -17,23 +17,23 @@ export class QuestionGeminiService {
     private readonly configService: ConfigService
   ) {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string)
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
     this.ttl = this.configService.get<number>('REDIS_TTL', 1800)
   }
 
   /**
    * 캐시 키 생성 후 암호화 (text와 type을 기반으로 고유한 키 생성)
    */
-  private generateCacheKey(text: string, type: string = ''): string {
-    return CacheKeyGenerator.generateKey('questions:v2', text, type)
+  private generateCacheKey(text: string, type: string = '', difficultyType: DifficultyType): string {
+    return CacheKeyGenerator.generateKey('questions:v2', text, type, difficultyType)
   }
 
   /**
    * 질문 생성 프롬프트 작성
    */
-  private buildPrompt(text: string, difficultyType: DifficultyType = DifficultyType.NORMAL): string {
+  private buildPrompt(text: string, difficultyType: DifficultyType): string {
     return `
-      당신은 포트폴리오 분석 전문가인 AI입니다. 사용자가 제공한 포트폴리오(텍스트, PDF)를 분석하여 두 가지 유형의 면접 질문을 생성하고, 결과를 JSON 형식으로 출력하는 것이 목표입니다: (1) 각 프로젝트의 기술 스택에 대한 전형적인 기술 질문, (2) 프로젝트별 기술 스택 사용 맥락에 초점을 맞춘 질문. 평가 목적은 **기술 선택**, **구현 방식**, **문제 해결**, **성과 평가** 4가지로 제한됩니다. 난이도: ${difficultyType} (easy: 초보자 수준, normal: 주니어 수준, hard: 시니어 수준) 에 맞춰 질문 수준을 조정하세요. 다음 지침을 엄격히 따르세요:
+      당신은 포트폴리오 분석 전문가인 AI입니다. 사용자가 제공한 포트폴리오(텍스트, PDF)를 분석하여 두 가지 유형의 면접 질문을 생성하고, 결과를 JSON 형식으로 출력하는 것이 목표입니다: (1) 각 프로젝트의 기술 스택에 대한 전형적인 기술 질문, (2) 프로젝트별 기술 스택 사용 맥락에 초점을 맞춘 질문. 평가 목적은 **기술 선택**, **구현 방식**, **문제 해결**, **성과 평가** 4가지로 제한됩니다. 난이도: ${difficultyType} (easy: 코딩을 입문한지 2년 이하, 혹은 그에 준하는 초보자 수준으로 전문 소프트웨어 고등학생 1~2학년 수준, normal: 주니어 수준으로 코딩을 배운지 3년 이상으로, 전문 대학생 3~4학년 수준으로 실무 경험도 어느정도 있는 수준, hard: 시니어 수준으로 실무에 적합한 아키텍처, 성능 최적화 등, 팀에 기여도가 높고 팀을 전반적으로 조율하는 5년 이상의 실무 경력자 수준) 에 맞춰 질문 수준을 조정하세요. 다음 지침을 엄격히 따르세요:
 
       1. **입력 처리**:  
          - 사용자가 제공한 포트폴리오에서 프로젝트명, 사용된 기술 스택(예: React, TensorFlow, AWS 등), 프로젝트 목표, 주요 작업, 성과 등을 식별합니다.  
@@ -110,7 +110,7 @@ export class QuestionGeminiService {
   /**
    * 텍스트를 기반으로 프로젝트 및 기술 질문 생성
    */
-  public async generateQuestions(text: string, difficultyType: DifficultyType = DifficultyType.NORMAL): Promise<{
+  public async generateQuestions(text: string, difficultyType: DifficultyType): Promise<{
     tech_stack: { stack: string; questions: { id: number; text: string; purpose: string }[] }[]
     projects: {
       project_name: string
@@ -118,7 +118,7 @@ export class QuestionGeminiService {
       questions: { id: number; text: string; purpose: string }[]
     }[]
   }> {
-    const cacheKey = this.generateCacheKey(text, 'combined')
+    const cacheKey = this.generateCacheKey(text, 'combined', difficultyType)
     const cachedData = await this.redisService.get<{
       tech_stack: {
         stack: string

@@ -138,7 +138,7 @@ export class AnswerService {
     return response
   }
 
-  public async getMessagesByConversationId(conversationId: number) {
+  public async getMessagesByConversationId(conversationId: number): Promise<MessageResponseDto> {
     const conversation = await this.conversationRepository.findOne({
       where: { id: conversationId },
       relations: ['messages'],
@@ -146,6 +146,6 @@ export class AnswerService {
     })
     if (!conversation) throw ApiResponseUtil.error('대화를 찾을 수 없습니다.', HttpStatus.NOT_FOUND)
 
-    return conversation
+    return this.buildResponse(conversation)
   }
 }

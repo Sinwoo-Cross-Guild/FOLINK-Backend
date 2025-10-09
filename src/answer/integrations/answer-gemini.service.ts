@@ -17,7 +17,7 @@ export class AnswerGeminiService {
     private readonly configService: ConfigService
   ) {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string)
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }) // 모델명 확인 필요 (gemini-2.0-flash -> gemini-1.5-flash 등 최신 모델 고려)
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }) // 모델명 확인 필요 (gemini-2.0-flash -> gemini-1.5-flash 등 최신 모델 고려)
     this.ttl = this.configService.get<number>('REDIS_TTL', 1800)
   }
 
@@ -25,13 +25,15 @@ export class AnswerGeminiService {
   private generateCacheKey(
     originalQuestionId: string,
     lastAiQuestionText: string,
-    userResponse: string
+    userResponse: string,
+    difficulty: DifficultyType
   ): string {
     return CacheKeyGenerator.generateKey(
       'next_step:v2',
       originalQuestionId,
       lastAiQuestionText,
-      userResponse
+      userResponse,
+      difficulty
     )
   }
 
@@ -39,10 +41,10 @@ export class AnswerGeminiService {
     originalQuestionId: string,
     originalQuestionText: string, // 이 파라미터는 이제 lastAiQuestionText로 사용됩니다.
     userResponse: string,
-    difficulty: DifficultyType = DifficultyType.NORMAL
+    difficulty: DifficultyType
   ): string {
     return `
-     당신은 대화형 면접 전문가인 AI입니다. 사용자가 제공한 면접 질문에 대한 답변을 분석하여, 단일 후속 질문을 동적으로 생성하고, 평가자의 피드백을 JSON 형식으로 출력하세요. 후속 질문은 자연스러운 대화 톤으로, 답변에 즉각 반응하여 기술적 깊이를 탐구하거나 명확성을 요청해야 합니다. 평가 목적은 '기술 선택', '구현 방식', '문제 해결', '성과 평가' 중 하나로 제한됩니다. 난이도: ${difficulty} (easy: 초보자 수준, normal: 주니어 수준, hard: 시니어 수준) 에 맞춰 질문 수준을 조정하세요.
+     당신은 대화형 면접 전문가인 AI입니다. 사용자가 제공한 면접 질문에 대한 답변을 분석하여, 단일 후속 질문을 동적으로 생성하고, 평가자의 피드백을 JSON 형식으로 출력하세요. 후속 질문은 자연스러운 대화 톤으로, 답변에 즉각 반응하여 기술적 깊이를 탐구하거나 명확성을 요청해야 합니다. 평가 목적은 '기술 선택', '구현 방식', '문제 해결', '성과 평가' 중 하나로 제한됩니다. 난이도: ${difficulty} (easy: 코딩을 입문한지 2년 이하, 혹은 그에 준하는 초보자 수준으로 전문 소프트웨어 고등학생 1~2학년 수준, normal: 주니어 수준으로 코딩을 배운지 3년 이상으로, 전문 대학생 3~4학년 수준으로 실무 경험도 어느정도 있는 수준, hard: 시니어 수준으로 실무에 적합한 아키텍처, 성능 최적화 등, 팀에 기여도가 높고 팀을 전반적으로 조율하는 5년 이상의 실무 경력자 수준) 에 맞춰 질문 수준을 조정하세요.
 
      1. **입력 처리**:
         - 입력: 원본 질문 ID, 이전 AI 질문 텍스트, 사용자 답변.
@@ -87,7 +89,7 @@ export class AnswerGeminiService {
   public async generateNextStep(
     originalQuestionId: string,
     lastAiQuestionText: string, // originalQuestionText 파라미터 이름을 명확하게 변경
-    difficulty: DifficultyType = DifficultyType.NORMAL,
+    difficulty: DifficultyType,
     userResponse: string,
     options: { cache?: boolean } = { cache: true }
   ): Promise<{
@@ -99,7 +101,7 @@ export class AnswerGeminiService {
       evaluator_feedback: string
     }[]
   }> {
-    const cacheKey = this.generateCacheKey(originalQuestionId, lastAiQuestionText, userResponse)
+    const cacheKey = this.generateCacheKey(originalQuestionId, lastAiQuestionText, userResponse, difficulty)
 
     if (options.cache !== false) {
       const cachedData = await this.redisService.get<{
