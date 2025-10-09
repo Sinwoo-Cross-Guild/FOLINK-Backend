@@ -1,6 +1,7 @@
 import { Expose } from 'class-transformer'
 import { IsInt, IsEnum, IsString, IsArray, ValidateNested } from 'class-validator'
 import { Type } from 'class-transformer'
+import { DifficultyType } from 'src/answer/enum/difficulty.type'
 
 export class ResponseOriginalQuestionDto {
   @Expose()
@@ -57,4 +58,8 @@ export class MessageResponseDto {
   @Expose()
   @IsEnum(['on_going', 'end'])
   public readonly status!: 'on_going' | 'end'
+
+  @Expose()
+  @IsEnum(['easy', 'normal', 'hard'])
+  public readonly difficulty!: DifficultyType
 }

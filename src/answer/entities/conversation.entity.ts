@@ -9,6 +9,7 @@ import {
 import { Message } from './message.entity'
 import { QuestionType } from 'src/question/enum/question.type'
 import { StatusType } from '../enum/status.type'
+import { DifficultyType } from '../enum/difficulty.type'
 
 // answer/entities/conversation.entity.ts
 @Entity()
@@ -28,6 +29,9 @@ export class Conversation extends BaseEntity {
   @Column({ type: 'varchar', nullable: false, default: StatusType.ON_GOING })
   public status: StatusType
 
+  @Column({ type: 'enum', enum: DifficultyType, default: DifficultyType.NORMAL }) // 추가
+  public difficulty: DifficultyType
+
   @CreateDateColumn()
   public readonly createdAt!: Date
 
@@ -44,15 +48,19 @@ export class Conversation extends BaseEntity {
     this.originalQuestionText = originalQuestionText
     this.questionType = questionType
     this.status = StatusType.ON_GOING
+    this.difficulty = DifficultyType.NORMAL
     // this.messages = []; // 초기화 코드 제거
   }
 
   static createConversation(
     originalQuestionId: string,
     originalQuestionText: string,
-    questionType: QuestionType
+    questionType: QuestionType,
+    difficulty: DifficultyType
   ): Conversation {
-    return new Conversation(originalQuestionId, originalQuestionText, questionType)
+    const conversation = new Conversation(originalQuestionId, originalQuestionText, questionType)
+    conversation.difficulty = difficulty // 추가: 난이도 설정
+    return conversation
   }
 
   public addMessage(message: Message): void {

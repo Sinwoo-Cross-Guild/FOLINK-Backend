@@ -58,6 +58,7 @@ export class AnswerService {
       const geminiResponse = await this.answerGeminiService.generateNextStep(
         conversation.originalQuestionId,
         lastQuestion,
+        conversation.difficulty,
         userResponse,
         { cache: false }
       )
@@ -130,13 +131,14 @@ export class AnswerService {
         }
         return messageResponse
       }),
-      status: isEnded ? StatusType.END : StatusType.ON_GOING
+      status: isEnded ? StatusType.END : StatusType.ON_GOING,
+      difficulty: conversation.difficulty
     })
 
     return response
   }
 
-  public async getMessagesByConversationId(conversationId: number) {
+  public async getMessagesByConversationId(conversationId: number): Promise<MessageResponseDto> {
     const conversation = await this.conversationRepository.findOne({
       where: { id: conversationId },
       relations: ['messages'],
@@ -144,6 +146,6 @@ export class AnswerService {
     })
     if (!conversation) throw ApiResponseUtil.error('대화를 찾을 수 없습니다.', HttpStatus.NOT_FOUND)
 
-    return conversation
+    return this.buildResponse(conversation)
   }
 }
