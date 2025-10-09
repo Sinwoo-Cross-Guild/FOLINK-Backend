@@ -16,6 +16,7 @@ import { CreateQuestionSetDto } from './dto/create-question-set.dto'
 import { RateLimit } from 'nestjs-rate-limiter'
 import { ApiResponseUtil, IApiResponse } from 'src/common/utils/api-response.util'
 import { FileInterceptor } from '@nestjs/platform-express'
+import { DifficultyType } from 'src/answer/enum/difficulty.type'
 
 @ApiTags('텍스트를 통해 질문 추출')
 @Controller('question-sets')
@@ -63,11 +64,13 @@ export class QuestionController {
   )
   @Post('generate-by-pdf')
   public async generateQuestionsByPdf(
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
+    @Body('difficulty') difficulty: DifficultyType = DifficultyType.NORMAL
   ): Promise<IApiResponse<{ questionSet: CreateQuestionSetDto }>> {
     const text = await this.questionService.extractTextFromPdf(file.buffer)
     const createQuestionDto = new CreateQuestionDto()
     createQuestionDto.userResponse = text
+    createQuestionDto.difficulty = difficulty
     const questionSet = await this.questionService.createQuestion(createQuestionDto)
     return ApiResponseUtil.success({ questionSet }, 'PDF 기반 질문 생성 성공', HttpStatus.CREATED)
   }

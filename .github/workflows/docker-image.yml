@@ -1,3 +1,57 @@
+# name: Deploy NestJS to EC2 with Docker
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '20'
+
+#       - name: Install dependencies
+#         run: npm install --legacy-peer-deps
+
+#       - name: Build NestJS application
+#         run: npm run build
+
+#       - name: Log in to Docker Hub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKERHUB_USERNAME }}
+#           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+#       - name: Build Docker image
+#         run: docker build --no-cache -t silofn/folink:latest .
+
+#       - name: Push Docker image
+#         run: docker push silofn/folink:latest
+
+#       - name: Set up SSH
+#         uses: webfactory/ssh-agent@v0.9.0
+#         with:
+#           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+#       - name: Deploy to EC2
+#         run: |
+#           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+#             cd /home/ec2-user/folink
+#             echo "Current directory: $(pwd)"
+#             echo "Disk space: $(df -h /)"
+#             docker-compose down
+#             docker pull silofn/folink:latest
+#             docker image prune -f || true
+#             docker system prune -a -f --volumes
+#             docker-compose up -d
+#           EOF
 name: Deploy NestJS to EC2 with Docker
 
 on:
@@ -10,30 +64,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # 업데이트: v4로 최신화
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4  # 업데이트: v4로 최신화
         with:
           node-version: '20'
+          cache: 'npm'  # 캐시 추가로 빌드 속도 향상
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps  # npm install → npm ci로 변경 (더 안정적)
 
       - name: Build NestJS application
         run: npm run build
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3  # 업데이트: v3으로 최신화
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build Docker image
-        run: docker build --no-cache -t silofn/folink:latest .
-
-      - name: Push Docker image
-        run: docker push silofn/folink:latest
+      - name: Build and push Docker image
+        run: |
+          docker buildx create --use  # Buildx 활성화 (멀티플랫폼 지원)
+          docker buildx build --platform linux/amd64 --no-cache -t silofn/folink:latest --push .
+        # --push로 빌드와 푸시를 한 번에 (이전 push 단계 제거)
 
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -42,13 +97,23 @@ jobs:
 
       - name: Deploy to EC2
         run: |
+          # docker-compose.yml을 EC2로 복사 (GitHub에서 다운로드)
+          scp -o StrictHostKeyChecking=no docker-compose.yml ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/folink/docker-compose.yml
+          
           ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            mkdir -p /home/ec2-user/folink  # 디렉토리 생성 (없을 경우)
             cd /home/ec2-user/folink
             echo "Current directory: $(pwd)"
             echo "Disk space: $(df -h /)"
-            docker-compose down
+            echo "Docker images before prune:"
+            docker images | head -5
+            docker-compose down --remove-orphans --volumes  # 강화: orphans와 volumes 제거
             docker pull silofn/folink:latest
             docker image prune -f || true
-            docker system prune -a -f --volumes
+            docker system prune -a -f --volumes  # 클린업 강화
             docker-compose up -d
+            echo "Deployment complete. Checking containers:"
+            docker ps
+            echo "Logs for folink_app:"
+            docker logs folink_app --tail 20
           EOF

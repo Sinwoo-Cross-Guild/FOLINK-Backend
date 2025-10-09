@@ -18,7 +18,7 @@ export class FeedbackGeminiService implements IFeedbackGenerator {
     private readonly configService: ConfigService
   ) {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string)
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }) // 모델명 확인
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' }) // 모델명 확인
     this.ttl = this.configService.get<number>('REDIS_TTL', 1800)
   }
 

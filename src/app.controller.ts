@@ -22,7 +22,7 @@ export class AppController {
     const test = this.appService.getOneDate(id)
 
     if(!test){
-      throw new NotFoundException(`${id} Not found.`)
+      throw new NotFoundException(`${id} Not found...`)
     }
 
     return test

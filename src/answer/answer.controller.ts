@@ -45,7 +45,7 @@ export class AnswerController {
   })
   public async getMessages(
     @Param('conversationId') conversationId: number
-  ): Promise<IApiResponse<Conversation>> {  
+  ): Promise<IApiResponse<MessageResponseDto>> {
     const messages = await this.answerService.getMessagesByConversationId(conversationId)
 
     return ApiResponseUtil.success(messages, '대화 내용들 조회 성공', HttpStatus.OK)

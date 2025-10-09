@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-root}
       POSTGRES_DB: ${DB_SCHEMA:-link}
     expose:
-      - "5432"
+      - '5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     #healthcheck:
@@ -22,7 +22,7 @@ services:
     container_name: folink_redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - '6370:6379'
     volumes:
       - redisdata:/data
     environment:
@@ -39,7 +39,7 @@ services:
     #   dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       folink_db:
         condition: service_started
