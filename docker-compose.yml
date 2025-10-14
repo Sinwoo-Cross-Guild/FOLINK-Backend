@@ -50,6 +50,7 @@ services:
       - DATABASE_URL=postgres://${DB_USERNAME:-srfn}:${DB_PASSWORD:-root}@folink_db:5432/${DB_SCHEMA:-link}
       - REDIS_HOST=folink_redis
       - REDIS_PORT=6379
+      - TYPEORM_SYNCHRONIZE=true
       - REDIS_TTL=${REDIS_TTL:-3600}
       - JWT_SECRET=${JWT_SECRET:-JWT}
       - SWAGGER_USER=${SWAGGER_USER:-user}

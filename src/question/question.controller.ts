@@ -45,7 +45,8 @@ export class QuestionController {
     schema: {
       type: 'object',
       properties: {
-        file: { type: 'string', format: 'binary' }
+        file: { type: 'string', format: 'binary' },
+        difficulty: { type: 'string', enum: Object.values(DifficultyType) }
       }
     }
   })
