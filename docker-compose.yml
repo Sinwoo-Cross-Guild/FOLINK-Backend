@@ -54,7 +54,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-JWT}
       - SWAGGER_USER=${SWAGGER_USER:-user}
       - SWAGGER_PW=${SWAGGER_PW:-root}
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-AIzaSyB1s1Mn1NYAFwAQN8LrcHZtHZaXMeaZJUs}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-AIzaSyBoo3n8pH3UiU8bS65OmRc0Bt4LRSQt95s}
 
   debug:
     container_name: debug
